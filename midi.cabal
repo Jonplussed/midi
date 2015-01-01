@@ -1,0 +1,19 @@
+name:                midi
+version:             0.0.1
+synopsis:            MIDI generator
+license:             GPL-3
+license-file:        LICENSE
+author:              Chris Wilson
+category:            Sound
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+executable midi
+  main-is:             Main.hs
+  other-extensions:    OverloadedStrings, BinaryLiterals
+  build-depends:       base == 4.*,
+                       binary == 0.7.*,
+                       bytestring == 0.10.*
+  hs-source-dirs:      src
+  default-language:    Haskell2010

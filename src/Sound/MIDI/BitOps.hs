@@ -1,4 +1,4 @@
-module BitTools (toHex, toBin) where
+module Sound.MIDI.BitOps (toHex, toBin) where
 
 import Data.Bits
 import Data.Word
