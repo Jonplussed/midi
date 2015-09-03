@@ -1,6 +1,6 @@
-module Sound.MIDI.Note where
+module Sound.Midi.Values.Note where
 
-import Sound.MIDI.Internal.Types
+import Sound.Midi.Internal.Types (Note (..))
 
 c0   = Note 0
 c'0  = Note 1

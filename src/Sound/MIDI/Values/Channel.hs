@@ -1,6 +1,6 @@
-module Sound.MIDI.Channel where
+module Sound.Midi.Values.Channel where
 
-import Sound.MIDI.Internal.Types (Channel (Channel))
+import Sound.Midi.Internal.Types (Channel (..))
 
 ch1  = Channel 1
 ch2  = Channel 2
