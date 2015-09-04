@@ -2,10 +2,12 @@ module Sound.Midi.Internal.Ops where
 
 import Data.Word (Word8)
 
-percentWord8 :: Int -> Word8
-percentWord8 per
-    | per < 0   = percentWord8 0
-    | per > 100 = percentWord8 100
-    | otherwise = fromIntegral . round $ fromIntegral per / 100 * maxValue
+correlateRanges :: (Float, Float) -> (Int, Int) -> Float -> Int
+correlateRanges from@(fromMin, fromMax) to@(toMin, toMax) val
+    | val < fromMin = againWithVal fromMin
+    | val > fromMax = againWithVal fromMax
+    | otherwise = round $ (val - fromMin) / fromDiff * fromIntegral toDiff - fromIntegral toMin
   where
-    maxValue = 127
+    againWithVal = correlateRanges from to
+    fromDiff = fromMax - fromMin
+    toDiff = toMax - toMin
