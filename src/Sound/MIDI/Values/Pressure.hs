@@ -1,14 +1,14 @@
 module Sound.Midi.Values.Pressure where
 
-import Sound.Midi.Internal.Ops (percentWord8)
+import Sound.Midi.Internal.Ops (correlateRanges)
 import Sound.Midi.Internal.Types (Pressure (..))
 
-hardest = Pressure 127
-harder  = Pressure 106
-hard    = Pressure 85
-soft    = Pressure 64
-softer  = Pressure 43
-softest = Pressure 22
+hardest = pressure 100
+harder  = pressure 80
+hard    = pressure 60
+soft    = pressure 40
+softer  = pressure 20
+softest = pressure 1
 
-pressure :: Int -> Pressure
-pressure = Pressure . percentWord8
+pressure :: Float -> Pressure
+pressure = Pressure . fromIntegral . correlateRanges (0,100) (0,127)

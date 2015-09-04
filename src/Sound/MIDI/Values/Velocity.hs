@@ -1,14 +1,14 @@
 module Sound.Midi.Values.Velocity where
 
-import Sound.Midi.Internal.Ops (percentWord8)
+import Sound.Midi.Internal.Ops (correlateRanges)
 import Sound.Midi.Internal.Types (Velocity (..))
 
-fastest = Velocity 127
-faster  = Velocity 106
-fast    = Velocity 85
-slow    = Velocity 64
-slower  = Velocity 43
-slowest = Velocity 22
+fastest = velocity 100
+faster  = velocity 80
+fast    = velocity 60
+slow    = velocity 40
+slower  = velocity 20
+slowest = velocity 1
 
-velocity :: Int -> Velocity
-velocity = Velocity . percentWord8
+velocity :: Float -> Velocity
+velocity = Velocity . fromIntegral . correlateRanges (0,100) (0,127)
