@@ -5,10 +5,9 @@ module Sound.Midi.Internal.Ops
 , on8thBit
 ) where
 
-import Data.Binary.Put (Put, putWord8, runPut)
 import Data.Bits (Bits, (.&.), (.|.), shiftR)
 import Data.ByteString.Lazy (ByteString)
-import Data.Word (Word8)
+import Data.Word (Word, Word8)
 
 correlateRanges :: (RealFrac a, Integral b) => (a,a) -> (b,b) -> a -> b
 correlateRanges from@(fromMin, fromMax) to@(toMin, toMax) val
@@ -19,23 +18,24 @@ correlateRanges from@(fromMin, fromMax) to@(toMin, toMax) val
     fromDiff = fromMax - fromMin
     toDiff = toMax - toMin
 
-encodeVarLength :: Int -> ByteString
-encodeVarLength = runPut . encodeVarLength'
-
-mask7Bits :: (Bits a , Num a) => a -> a
+mask7Bits :: (Bits a, Num a) => a -> a
 mask7Bits n = 127 .&. n
 
-on8thBit :: (Bits a , Num a) => a -> a
+on8thBit :: (Bits a, Num a) => a -> a
 on8thBit n = 128 .|. n
+
+encodeVarLength :: Int -> [Word8]
+encodeVarLength = encodeVarLength' [] id
 
 -- private functions
 
-encodeVarLength' :: Int -> Put
-encodeVarLength' val
-    | remaining == 0 = putWord8 nextVal
-    | otherwise = do
-          putWord8 $ on8thBit nextVal
-          encodeVarLength' remaining
+-- a value of with bits:  aaaabbbbccccdddd
+-- is represented as:     100000aa 1aabbbbc 0cccdddd
+encodeVarLength' :: [Word8] -> (Int -> Int) -> Int -> [Word8]
+encodeVarLength' words nextValMask val =
+    if remaining > 0
+    then encodeVarLength' (nextVal : words) on8thBit remaining
+    else words
   where
+    nextVal = fromIntegral . nextValMask $ mask7Bits val
     remaining = shiftR val 7
-    nextVal = fromIntegral $ mask7Bits val
