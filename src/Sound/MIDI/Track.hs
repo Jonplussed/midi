@@ -1,17 +1,21 @@
-module Sound.Midi.Monad
-( Track
-, TrackF (..)
+{-# LANGUAGE OverloadedStrings #-}
+
+module Sound.Midi.Track
+( TrackM
+, ChunkM (..)
 , runTrack
 ) where
 
 import Control.Monad.Free (Free (..))
-import Data.Binary.Put (Put, putWord8, putWord16be)
 
+import qualified Data.ByteString.Lazy as LazyBS
+import qualified Data.ByteString as BS
 import qualified Sound.Midi.Values.VoiceEvent as VE
 
+import Data.Binary.Put
 import Sound.Midi.Internal.Types
 
-data TrackF next
+data ChunkM next
   = NoteOff DeltaTime Note Velocity next
   | NoteOn DeltaTime Note Velocity next
   | AfterTouch DeltaTime Note Pressure next
@@ -19,11 +23,12 @@ data TrackF next
   | PatchChange DeltaTime Patch next
   | ChannelPressure DeltaTime Pressure next
   | PitchWheelChange DeltaTime PitchWheel next
+  | TrackEnd DeltaTime
 
-type Track a = Free TrackF a
+type TrackM a = Free ChunkM a
 
-runTrack :: Channel -> Track a -> Put
-runTrack chan = interp
+runTrack :: Channel -> TrackM a -> Put
+runTrack chan = trackStart . interp
   where
     interp (Free (NoteOff dt (Note note) (Velocity vel) next)) = do
       putDeltaTime dt
@@ -64,8 +69,25 @@ runTrack chan = interp
       putEvent VE.pitchWheelChange chan
       putWord16be pitch
       interp next
+    interp (Free (TrackEnd dt)) = do
+      putDeltaTime dt
+      trackEnd
 
 -- private functions
+
+trackStart :: Put -> Put
+trackStart put = do
+    putByteString "MTrk"
+    putWord32be . fromIntegral $ BS.length str
+    putByteString str
+  where
+    str = LazyBS.toStrict $ runPut put
+
+trackEnd :: Put
+trackEnd = do
+    putWord8 0xff
+    putWord8 0x2f
+    putWord8 0x00
 
 putDeltaTime :: DeltaTime -> Put
 putDeltaTime (DeltaTime words) = mapM_ putWord8 words
