@@ -3,14 +3,14 @@
 module Sound.Midi.Track
 ( TrackM
 , ChunkM (..)
-, runTrack
+, putTrack
 ) where
 
 import Control.Monad.Free (Free (..))
 
 import qualified Data.ByteString.Lazy as LazyBS
-import qualified Data.ByteString as BS
-import qualified Sound.Midi.Values.VoiceEvent as VE
+import qualified Data.ByteString as StrictBS
+import qualified Sound.Midi.Values.Event as Eve
 
 import Data.Binary.Put
 import Sound.Midi.Internal.Types
@@ -23,53 +23,101 @@ data ChunkM next
   | PatchChange DeltaTime Patch next
   | ChannelPressure DeltaTime Pressure next
   | PitchWheelChange DeltaTime PitchWheel next
-  | TrackEnd DeltaTime
+  | SequenceNumber DeltaTime Sequence next
+  | TextArbitrary DeltaTime StrictBS.ByteString next
+  | TextCopyright DeltaTime StrictBS.ByteString next
+  | TextTrackName DeltaTime StrictBS.ByteString next
+  | TextInstruName DeltaTime StrictBS.ByteString next
+  | TextLyric DeltaTime StrictBS.ByteString next
+  | TextMarker DeltaTime StrictBS.ByteString next
+  | TextCuePoint DeltaTime StrictBS.ByteString next
+  | SetTempo DeltaTime next
+  | SetTimeSig DeltaTime next
+  | SetKeySig DeltaTime next
+  | EndOfTrack DeltaTime
 
 type TrackM a = Free ChunkM a
 
-runTrack :: Channel -> TrackM a -> Put
-runTrack chan = trackStart . interp
+putTrack :: Channel -> TrackM a -> Put
+putTrack chan = trackStart . interp
   where
     interp (Free (NoteOff dt (Note note) (Velocity vel) next)) = do
       putDeltaTime dt
-      putEvent VE.noteOff chan
+      putVoiceEvent Eve.noteOff chan
       putWord8 note
       putWord8 vel
       interp next
     interp (Free (NoteOn dt (Note note) (Velocity vel) next)) = do
       putDeltaTime dt
-      putEvent VE.noteOn chan
+      putVoiceEvent Eve.noteOn chan
       putWord8 note
       putWord8 vel
       interp next
     interp (Free (AfterTouch dt (Note note) (Pressure pres) next)) = do
       putDeltaTime dt
-      putEvent VE.afterTouch chan
+      putVoiceEvent Eve.afterTouch chan
       putWord8 note
       putWord8 pres
       interp next
     interp (Free (ControlChange dt (ControllerIdent ident) (ControllerValue val) next)) = do
       putDeltaTime dt
-      putEvent VE.controlChange chan
+      putVoiceEvent Eve.controlChange chan
       putWord8 ident
       putWord8 val
       interp next
     interp (Free (PatchChange dt (Patch patch) next)) = do
       putDeltaTime dt
-      putEvent VE.patchChange chan
+      putVoiceEvent Eve.patchChange chan
       putWord8 patch
       interp next
     interp (Free (ChannelPressure dt (Pressure pres) next)) = do
       putDeltaTime dt
-      putEvent VE.channelPressure chan
+      putVoiceEvent Eve.channelPressure chan
       putWord8 pres
       interp next
     interp (Free (PitchWheelChange dt (PitchWheel pitch) next)) = do
       putDeltaTime dt
-      putEvent VE.pitchWheelChange chan
+      putVoiceEvent Eve.pitchWheelChange chan
       putWord16be pitch
       interp next
-    interp (Free (TrackEnd dt)) = do
+    interp (Free (SequenceNumber dt (Sequence num) next)) = do
+      putDeltaTime dt
+      putMetaEvent Eve.sequenceNumber
+      putWord8 0x02
+      putWord16be num
+      interp next
+    interp (Free (TextArbitrary dt text next)) = do
+      putDeltaTime dt
+      putText text
+      interp next
+    interp (Free (TextCopyright dt text next)) = do
+      putDeltaTime dt
+      putText text
+      interp next
+    interp (Free (TextTrackName dt text next)) = do
+      putDeltaTime dt
+      putText text
+      interp next
+    interp (Free (TextInstruName dt text next)) = do
+      putDeltaTime dt
+      putText text
+      interp next
+    interp (Free (TextLyric dt text next)) = do
+      putDeltaTime dt
+      putText text
+      interp next
+    interp (Free (TextMarker dt text next)) = do
+      putDeltaTime dt
+      putText text
+      interp next
+    interp (Free (TextCuePoint dt text next)) = do
+      putDeltaTime dt
+      putText text
+      interp next
+    -- interp (Free (SetTempo DeltaTime next
+    -- interp (Free (SetTimeSig DeltaTime next
+    -- interp (Free (SetKeySig DeltaTime next
+    interp (Free (EndOfTrack dt)) = do
       putDeltaTime dt
       trackEnd
 
@@ -78,7 +126,7 @@ runTrack chan = trackStart . interp
 trackStart :: Put -> Put
 trackStart put = do
     putByteString "MTrk"
-    putWord32be . fromIntegral $ BS.length str
+    putWord32be . fromIntegral $ StrictBS.length str
     putByteString str
   where
     str = LazyBS.toStrict $ runPut put
@@ -92,5 +140,13 @@ trackEnd = do
 putDeltaTime :: DeltaTime -> Put
 putDeltaTime (DeltaTime words) = mapM_ putWord8 words
 
-putEvent :: VoiceEvent -> Channel -> Put
-putEvent (VoiceEvent withChan) = putWord8 . withChan
+putMetaEvent :: MetaEvent -> Put
+putMetaEvent (MetaEvent ident) = putWord16be ident
+
+putVoiceEvent :: VoiceEvent -> Channel -> Put
+putVoiceEvent (VoiceEvent withChan) = putWord8 . withChan
+
+putText :: StrictBS.ByteString -> Put
+putText bs = do
+  putWord8 . fromIntegral $ StrictBS.length bs
+  putByteString bs

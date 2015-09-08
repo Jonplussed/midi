@@ -10,5 +10,5 @@ slow    = percent 40
 slower  = percent 20
 slowest = percent 1
 
-percent :: Float -> Velocity
+percent :: RealFrac a => a -> Velocity
 percent = Velocity . fromIntegral . correlateRanges (0,100) (0,127)

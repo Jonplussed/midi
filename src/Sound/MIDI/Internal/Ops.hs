@@ -24,14 +24,14 @@ mask7Bits n = 127 .&. n
 on8thBit :: (Bits a, Num a) => a -> a
 on8thBit n = 128 .|. n
 
-encodeVarLength :: Int -> [Word8]
+encodeVarLength :: (Bits a, Integral a) => a -> [Word8]
 encodeVarLength = encodeVarLength' [] id
 
 -- private functions
 
 -- a value of with bits:  aaaabbbbccccdddd
 -- is represented as:     100000aa 1aabbbbc 0cccdddd
-encodeVarLength' :: [Word8] -> (Int -> Int) -> Int -> [Word8]
+encodeVarLength' :: (Bits a, Integral a) => [Word8] -> (a -> a) -> a -> [Word8]
 encodeVarLength' words nextValMask val =
     if remaining > 0
     then encodeVarLength' (nextVal : words) on8thBit remaining

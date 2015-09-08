@@ -10,5 +10,5 @@ soft    = percent 40
 softer  = percent 20
 softest = percent 1
 
-percent :: Float -> Pressure
+percent :: RealFrac a => a -> Pressure
 percent = Pressure . fromIntegral . correlateRanges (0,100) (0,127)
