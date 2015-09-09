@@ -41,10 +41,10 @@ textInstruName    = metaEvent 0x04
 textLyric         = metaEvent 0x05
 textMarker        = metaEvent 0x06
 textCuePoint      = metaEvent 0x07
-endOfTrack        = metaEvent 0x2F
 setTempo          = metaEvent 0x51
 setTimeSig        = metaEvent 0x58
 setKeySig         = metaEvent 0x59
+endOfTrack        = metaEvent 0x2F
 
 -- private functions
 

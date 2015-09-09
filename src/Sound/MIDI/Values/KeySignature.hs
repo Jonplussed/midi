@@ -24,5 +24,4 @@ b       = KeyNote 5
 cFlat   = KeyNote (-7)
 
 keyOf :: KeyNote -> KeyChord -> KeySignature
-keyOf (KeyNote note) (KeyChord chord) =
-    KeySignature $ shiftL (fromIntegral note) 8 .|. fromIntegral chord
+keyOf note chord = KeySignature (note, chord)

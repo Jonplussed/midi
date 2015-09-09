@@ -4,6 +4,8 @@ import Data.Bits (Bits)
 import Sound.Midi.Internal.Ops (encodeVarLength)
 import Sound.Midi.Internal.Types (DeltaTime (..), PPQN (..))
 
+newtype DeltaTime = DeltaTime Int
+
 pulses :: Int -> DeltaTime
 pulses = deltaTime
 
