@@ -33,13 +33,13 @@ data ChunkM next
   | TextCuePoint DeltaTime StrictBS.ByteString next
   | SetTempo DeltaTime next
   | SetTimeSig DeltaTime next
-  | SetKeySig DeltaTime next
+  | SetKeySig DeltaTime KeySignature next
   | EndOfTrack DeltaTime
 
 type TrackM a = Free ChunkM a
 
 putTrack :: Channel -> TrackM a -> Put
-putTrack chan = trackStart . interp
+putTrack chan = putTrackHeader . interp
   where
     interp (Free (NoteOff dt (Note note) (Velocity vel) next)) = do
       putDeltaTime dt
@@ -88,54 +88,61 @@ putTrack chan = trackStart . interp
       interp next
     interp (Free (TextArbitrary dt text next)) = do
       putDeltaTime dt
+      putMetaEvent Eve.textArbitrary
       putText text
       interp next
     interp (Free (TextCopyright dt text next)) = do
       putDeltaTime dt
+      putMetaEvent Eve.textCopyright
       putText text
       interp next
     interp (Free (TextTrackName dt text next)) = do
       putDeltaTime dt
+      putMetaEvent Eve.textTrackName
       putText text
       interp next
     interp (Free (TextInstruName dt text next)) = do
       putDeltaTime dt
+      putMetaEvent Eve.textInstruName
       putText text
       interp next
     interp (Free (TextLyric dt text next)) = do
       putDeltaTime dt
+      putMetaEvent Eve.textLyric
       putText text
       interp next
     interp (Free (TextMarker dt text next)) = do
       putDeltaTime dt
+      putMetaEvent Eve.textMarker
       putText text
       interp next
     interp (Free (TextCuePoint dt text next)) = do
       putDeltaTime dt
+      putMetaEvent Eve.textCuePoint
       putText text
       interp next
     -- interp (Free (SetTempo DeltaTime next
     -- interp (Free (SetTimeSig DeltaTime next
-    -- interp (Free (SetKeySig DeltaTime next
+    interp (Free (SetKeySig dt (KeySignature keySig) next)) = do
+      putDeltaTime dt
+      putMetaEvent Eve.setKeySig
+      putWord8 0x02
+      putWord16be keySig
+      interp next
     interp (Free (EndOfTrack dt)) = do
       putDeltaTime dt
-      trackEnd
+      putMetaEvent Eve.endOfTrack
+      putWord8 0x00
 
 -- private functions
 
-trackStart :: Put -> Put
-trackStart put = do
+putTrackHeader :: Put -> Put
+putTrackHeader put = do
     putByteString "MTrk"
     putWord32be . fromIntegral $ StrictBS.length str
     putByteString str
   where
     str = LazyBS.toStrict $ runPut put
-
-trackEnd :: Put
-trackEnd = do
-    putWord8 0xff
-    putWord8 0x2f
-    putWord8 0x00
 
 putDeltaTime :: DeltaTime -> Put
 putDeltaTime (DeltaTime words) = mapM_ putWord8 words

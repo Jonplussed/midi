@@ -1,10 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
 
 module Sound.Midi.Header where
 
-import Data.Binary.Put
-import Data.Bits ((.&.), setBit, shiftR)
-import Data.Word
+import qualified Data.ByteString.Lazy as LazyBS
+import qualified Data.ByteString as BS
+import qualified Sound.Midi.Values.VoiceEvent as VE
 
+import Data.Binary.Put
 import Sound.Midi.Internal.Types
 
 -- fileHeader :: FileFormat -> [Track] -> Put
@@ -15,5 +17,4 @@ import Sound.Midi.Internal.Types
 --     putWord16be   (length tracks)
 --     putWord16be   pulsesPerQuarterNote
 --   where
---     chunkSize = 6
---     pulsesPerQuarterNote = 480
+
