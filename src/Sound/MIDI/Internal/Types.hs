@@ -53,5 +53,6 @@ data MetaChunk
 data ChunkM next
   = VoiceChunk DeltaTime VoiceChunk next
   | MetaChunk DeltaTime MetaChunk next
+  | Rest DeltaTime next
 
 type TrackM next = Free ChunkM next

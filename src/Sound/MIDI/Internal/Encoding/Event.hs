@@ -13,20 +13,25 @@ import qualified Data.ByteString as StrictBS
 import qualified Data.ByteString.Lazy as LazyBS
 
 putTrack :: Channel -> TrackM a -> Put
-putTrack chan track = putTrackBegin $ interp track
+putTrack chan track = do
+    putTrackBegin $ interp track (DeltaTime 0)
+    putTrackEnd
   where
-    interp (Free (VoiceChunk deltaTime chunk next)) = do
+    interp (Free (VoiceChunk nextDeltaTime chunk next)) deltaTime = do
       encode deltaTime
       putWord8 $ voiceChunkIdent chan chunk
       encode chunk
-      interp next
-    interp (Free (MetaChunk deltaTime chunk next)) = do
+      interp next nextDeltaTime
+    interp (Free (MetaChunk nextDeltaTime chunk next)) deltaTime = do
       encode deltaTime
       putWord8 0xFF
       putWord8 $ metaChunkIdent chunk
       putWord8 $ metaArgSize chunk
       encode chunk
-      interp next
+      interp next nextDeltaTime
+    interp (Free (Rest nextDeltaTime next)) deltaTime = do
+      encode deltaTime
+      interp next nextDeltaTime
 
 putTrackBegin :: Put -> Put
 putTrackBegin put = do
@@ -35,6 +40,14 @@ putTrackBegin put = do
     putByteString str
   where
     str = LazyBS.toStrict $ runPut put
+
+-- this is technically a MIDI meta-event, but encoding it this way
+-- rather than as a useful event ensures its proper usage
+putTrackEnd :: Put
+putTrackEnd = do
+    putWord8 0xFF
+    putWord8 0x2F
+    putWord8 0x00
 
 instance Encodable VoiceChunk where
   encode (NoteOff note vel) = encode note >> encode vel
@@ -57,7 +70,6 @@ instance Encodable MetaChunk where
   encode (SetTempo tempo) = undefined
   encode (SetTimeSig) = undefined
   encode (SetKeySig sig) = encode sig
-  encode EndOfTrack = return ()
 
 -- private functions
 
@@ -86,7 +98,6 @@ metaChunkIdent chunk = case chunk of
     SetTempo _          -> 0x51
     SetTimeSig          -> 0x58
     SetKeySig _         -> 0x59
-    EndOfTrack          -> 0x2F
 
 metaArgSize :: MetaChunk -> Word8
 metaArgSize chunk = case chunk of
@@ -101,6 +112,5 @@ metaArgSize chunk = case chunk of
     SetTempo _          -> 0x03
     SetTimeSig          -> 0x04
     SetKeySig _         -> 0x02
-    EndOfTrack          -> 0x00
   where
     len = fromIntegral . StrictBS.length
