@@ -3,7 +3,6 @@ module Sound.Midi.Internal.Types where
 import Control.Monad.Free (Free (..))
 import Control.Monad.Reader (ReaderT)
 import Control.Monad.State (State)
-import Data.Binary.Put (Put, PutM)
 import Data.Word (Word8, Word16, Word32)
 import Data.Word.Word24 (Word24)
 
@@ -62,4 +61,4 @@ type TrackM = Free ChunkM
 type Midi = ReaderT PPQN (State (TrackCount, Bld.Builder))
 
 class Encodable a where
-  encode :: a -> Put
+  encode :: a -> Bld.Builder
