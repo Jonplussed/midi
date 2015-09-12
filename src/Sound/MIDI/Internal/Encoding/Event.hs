@@ -12,7 +12,6 @@ import Control.Monad.Trans.Class (lift)
 import Data.Bits ((.|.))
 import Data.Monoid ((<>))
 import Data.Word (Word8)
-import Sound.Midi.Internal.Ops (fromBeats)
 
 import qualified Data.ByteString as StrictBS
 import qualified Data.ByteString.Lazy as LazyBS
@@ -55,6 +54,10 @@ buildFile format ppqn tracks =
     (_, (trackCount, trackStr)) = runState (runReaderT tracks ppqn) initState
 
 -- private functions
+
+fromBeats :: PPQN -> Beats -> DeltaTime
+fromBeats (PPQN ppqn) (Beats beats) =
+    DeltaTime . round $ fromIntegral ppqn * beats
 
 fileBegin :: FileFormat -> PPQN -> TrackCount -> Bld.Builder
 fileBegin format ppqn trackCount =

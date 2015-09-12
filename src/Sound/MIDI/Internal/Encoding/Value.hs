@@ -48,9 +48,6 @@ instance Encodable Pressure where
 instance Encodable Sequence where
   encode (Sequence seq) = Bld.word16BE seq
 
-instance Encodable Tempo where
-  encode (Tempo tempo) = undefined
-
 instance Encodable TrackCount where
   encode (TrackCount tc) = Bld.word16BE tc
 
