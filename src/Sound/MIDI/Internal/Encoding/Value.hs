@@ -1,48 +1,59 @@
 module Sound.Midi.Internal.Encoding.Value where
 
-import Data.Binary.Put (Put, putByteString, putWord8, putWord16be)
 import Data.Bits (Bits, (.&.), (.|.), shiftR)
-import Data.Word (Word8)
+import Data.ByteString (ByteString)
+import Data.Word (Word8, Word16, Word32)
+
+import qualified Data.Binary.Put as Put
 
 import Sound.Midi.Internal.Types
 
 instance Encodable ControllerIdent where
-  encode (ControllerIdent ci) = putWord8 ci
+  encode (ControllerIdent ci) = Put.putWord8 ci
 
 instance Encodable ControllerValue where
-  encode (ControllerValue cv) = putWord8 cv
+  encode (ControllerValue cv) = Put.putWord8 cv
 
 instance Encodable DeltaTime where
-  encode (DeltaTime dt) = mapM_ putWord8 $ encodeVarLength dt
+  encode (DeltaTime dt) = mapM_ Put.putWord8 $ encodeVarLength dt
+
+instance Encodable FileFormat where
+  encode (FileFormat ff) = Put.putWord16be ff
 
 instance Encodable KeySignature where
   encode (KeySignature (KeyNote note, KeyChord chord)) = do
-    putWord8 note
-    putWord8 chord
+    Put.putWord8 note
+    Put.putWord8 chord
 
 instance Encodable Note where
-  encode (Note note) = putWord8 note
+  encode (Note note) = Put.putWord8 note
 
 instance Encodable Patch where
-  encode (Patch patch) = putWord8 patch
+  encode (Patch patch) = Put.putWord8 patch
 
 instance Encodable PitchWheel where
   encode (PitchWheel pitch) = do
-    let putWord8' = putWord8 . fromIntegral . mask7Bits
-    putWord8' pitch
-    putWord8' (drop7Bits pitch)
+    let word8' = Put.putWord8 . fromIntegral . mask7Bits
+    word8' pitch
+    word8' (drop7Bits pitch)
+
+instance Encodable PPQN where
+  encode (PPQN ppqn) = Put.putWord16be ppqn
 
 instance Encodable Pressure where
-  encode (Pressure pres) = putWord8 pres
+  encode (Pressure pres) = Put.putWord8 pres
 
 instance Encodable Sequence where
-  encode (Sequence seq) = putWord16be seq
+  encode (Sequence seq) = Put.putWord16be seq
 
 instance Encodable Tempo where
   encode (Tempo tempo) = undefined
 
+instance Encodable TrackCount where
+  encode (TrackCount tc) = Put.putWord16be tc
+
 instance Encodable Velocity where
-  encode (Velocity vel) = putWord8 vel
+  encode (Velocity vel) = Put.putWord8 vel
 
 -- private functions
 

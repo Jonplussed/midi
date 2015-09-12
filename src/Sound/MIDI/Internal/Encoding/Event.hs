@@ -1,53 +1,83 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Sound.Midi.Internal.Encoding.Event where
+module Sound.Midi.Internal.Encoding.Event
+( buildTrack
+, buildFile
+) where
 
-import Data.Binary.Put (Put, putByteString, putWord8, putWord32be, runPut)
-import Data.Bits ((.|.))
 import Control.Monad.Free (Free (..))
+import Control.Monad.Reader (runReaderT)
+import Control.Monad.State (runState)
+import Control.Monad.Trans.Class (lift)
+import Data.Bits ((.|.))
+import Data.Monoid ((<>))
 import Data.Word (Word8)
-import Sound.Midi.Internal.Encoding.Value
-import Sound.Midi.Internal.Types
+import Sound.Midi.Internal.Ops (fromBeats)
 
 import qualified Data.ByteString as StrictBS
 import qualified Data.ByteString.Lazy as LazyBS
+import qualified Data.ByteString.Lazy.Builder as Bld
+import qualified Data.Binary.Put as Put
 
-putTrack :: Channel -> TrackM a -> Put
-putTrack chan track = do
-    putTrackBegin $ interp track (DeltaTime 0)
-    putTrackEnd
-  where
-    interp (Free (VoiceChunk nextDeltaTime chunk next)) deltaTime = do
-      encode deltaTime
-      putWord8 $ voiceChunkIdent chan chunk
-      encode chunk
-      interp next nextDeltaTime
-    interp (Free (MetaChunk nextDeltaTime chunk next)) deltaTime = do
-      encode deltaTime
-      putWord8 0xFF
-      putWord8 $ metaChunkIdent chunk
-      putWord8 $ metaArgSize chunk
-      encode chunk
-      interp next nextDeltaTime
-    interp (Free (Rest nextDeltaTime next)) deltaTime = do
-      encode deltaTime
-      interp next nextDeltaTime
+import Sound.Midi.Internal.Encoding.Value
+import Sound.Midi.Internal.Types
 
-putTrackBegin :: Put -> Put
-putTrackBegin put = do
-    putByteString "MTrk"
-    putWord32be . fromIntegral $ StrictBS.length str
-    putByteString str
+-- NOTE: musicians write music as "[event] for [time]", whereas MIDI is
+-- written as "wait for [time], then perform [event]". We merge the two by
+-- kicking each action's deltaTime up to the next event
+
+buildTrack :: PPQN -> Channel -> TrackM a -> Bld.Builder
+buildTrack ppqn chan track =
+    trackBegin (Put.runPut . interp track $ Beats 0) <>
+    trackEnd
   where
-    str = LazyBS.toStrict $ runPut put
+    interp (Free (VoiceChunk nextBeats chunk next)) beats = do
+      encode $ fromBeats ppqn beats
+      Put.putWord8 $ voiceChunkIdent chan chunk
+      encode chunk
+      interp next nextBeats
+    interp (Free (MetaChunk nextBeats chunk next)) beats = do
+      encode $ fromBeats ppqn beats
+      Put.putWord8 0xFF
+      Put.putWord8 $ metaChunkIdent chunk
+      Put.putWord8 $ metaArgSize chunk
+      encode chunk
+      interp next nextBeats
+    interp (Free (Rest nextBeats next)) beats = do
+      encode $ fromBeats ppqn beats
+      interp next nextBeats
+
+buildFile :: FileFormat -> PPQN -> Midi () -> Bld.Builder
+buildFile format ppqn tracks =
+    fileBegin format ppqn trackCount <>
+    trackStr
+  where
+    initState = (TrackCount 0, mempty)
+    (_, (trackCount, trackStr)) = runState (runReaderT tracks ppqn) initState
+
+-- private functions
+
+fileBegin :: FileFormat -> PPQN -> TrackCount -> Bld.Builder
+fileBegin (FileFormat format) (PPQN ppqn) (TrackCount trackCount) =
+    Bld.byteString "MThd" <>
+    Bld.word32BE 0x06 <>
+    Bld.word16BE format <>
+    Bld.word16BE trackCount <>
+    Bld.word16BE ppqn
+
+trackBegin :: LazyBS.ByteString -> Bld.Builder
+trackBegin lazyBS =
+    Bld.byteString "MTrk" <>
+    Bld.word32BE (fromIntegral $ LazyBS.length lazyBS) <>
+    Bld.lazyByteString lazyBS
 
 -- this is technically a MIDI meta-event, but encoding it this way
 -- rather than as a useful event ensures its proper usage
-putTrackEnd :: Put
-putTrackEnd = do
-    putWord8 0xFF
-    putWord8 0x2F
-    putWord8 0x00
+trackEnd :: Bld.Builder
+trackEnd =
+  Bld.word8 0xFF <>
+  Bld.word8 0x2F <>
+  Bld.word8 0x00
 
 instance Encodable VoiceChunk where
   encode (NoteOff note vel) = encode note >> encode vel
@@ -60,13 +90,13 @@ instance Encodable VoiceChunk where
 
 instance Encodable MetaChunk where
   encode (SequenceNumber seq) = encode seq
-  encode (TextArbitrary text) = putByteString text
-  encode (TextCopyright text) = putByteString text
-  encode (TextTrackName text) = putByteString text
-  encode (TextInstruName text) = putByteString text
-  encode (TextLyric text) = putByteString text
-  encode (TextMarker text) = putByteString text
-  encode (TextCuePoint text) = putByteString text
+  encode (TextArbitrary text) = Put.putByteString text
+  encode (TextCopyright text) = Put.putByteString text
+  encode (TextTrackName text) = Put.putByteString text
+  encode (TextInstruName text) = Put.putByteString text
+  encode (TextLyric text) = Put.putByteString text
+  encode (TextMarker text) = Put.putByteString text
+  encode (TextCuePoint text) = Put.putByteString text
   encode (SetTempo tempo) = undefined
   encode (SetTimeSig) = undefined
   encode (SetKeySig sig) = encode sig

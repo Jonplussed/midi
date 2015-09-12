@@ -1,14 +1,17 @@
 module Sound.Midi.Internal.Types where
 
 import Control.Monad.Free (Free (..))
-import Data.Binary.Put (Put, putWord8)
-import Data.ByteString (ByteString)
+import Control.Monad.Reader (ReaderT)
+import Control.Monad.State (State)
+import Data.Binary.Put (Put, PutM)
 import Data.Word (Word8, Word16, Word32)
 import Data.Word.Word24 (Word24)
 
-class Encodable a where
-  encode :: a -> Put
+import qualified Data.ByteString as StrictBS
+import qualified Data.ByteString.Lazy as LazyBS
+import qualified Data.ByteString.Lazy.Builder as Bld
 
+newtype Beats           = Beats Float
 newtype Channel         = Channel Word8
 newtype ControllerIdent = ControllerIdent Word8
 newtype ControllerValue = ControllerValue Word8
@@ -24,6 +27,7 @@ newtype PPQN            = PPQN Word16
 newtype Pressure        = Pressure Word8
 newtype Sequence        = Sequence Word16
 newtype Tempo           = Tempo Word24
+newtype TrackCount      = TrackCount Word16
 newtype Velocity        = Velocity Word8
 
 data VoiceChunk
@@ -38,21 +42,24 @@ data VoiceChunk
 -- still needs Tempo and TimeSig
 data MetaChunk
   = SequenceNumber Sequence
-  | TextArbitrary ByteString
-  | TextCopyright ByteString
-  | TextTrackName ByteString
-  | TextInstruName ByteString
-  | TextLyric ByteString
-  | TextMarker ByteString
-  | TextCuePoint ByteString
+  | TextArbitrary StrictBS.ByteString
+  | TextCopyright StrictBS.ByteString
+  | TextTrackName StrictBS.ByteString
+  | TextInstruName StrictBS.ByteString
+  | TextLyric StrictBS.ByteString
+  | TextMarker StrictBS.ByteString
+  | TextCuePoint StrictBS.ByteString
   | SetTempo Tempo
   | SetTimeSig -- gotta figure this out
   | SetKeySig KeySignature
-  | EndOfTrack
 
 data ChunkM next
-  = VoiceChunk DeltaTime VoiceChunk next
-  | MetaChunk DeltaTime MetaChunk next
-  | Rest DeltaTime next
+  = VoiceChunk Beats VoiceChunk next
+  | MetaChunk Beats MetaChunk next
+  | Rest Beats next
 
-type TrackM next = Free ChunkM next
+type TrackM = Free ChunkM
+type Midi = ReaderT PPQN (State (TrackCount, Bld.Builder))
+
+class Encodable a where
+  encode :: a -> Put
