@@ -1,4 +1,17 @@
-module Sound.Midi where
+module Sound.Midi
+( -- MIDI files
+  Midi
+, midi
+, Track
+, track
+-- voice events
+, note
+-- meta events
+, text
+, copyright
+, trackName
+, instrumentName
+) where
 
 import Control.Monad.Reader (ask)
 import Control.Monad.State (modify)
@@ -14,6 +27,8 @@ import Sound.Midi.Events
 import Sound.Midi.Internal.Types
 import Sound.Midi.Values
 
+-- MIDI files
+
 midi :: FileFormat -> PPQN -> Midi -> LazyBS.ByteString
 midi format ppqn tracks = Bld.toLazyByteString $ buildFile format ppqn tracks
 
@@ -24,10 +39,14 @@ track channel events = do
     lift . modify $ \(TrackCount count, tracks) ->
       (TrackCount (succ count), tracks <> nextTrack)
 
+-- voice-events
+
 note :: Note -> Float -> Track
 note n beats = do
     noteOn n moderate beats
     noteOff n moderate 0
+
+-- meta-events
 
 text :: StrictBS.ByteString -> Track
 text str = textArbitrary str 0
@@ -35,7 +54,8 @@ text str = textArbitrary str 0
 copyright :: StrictBS.ByteString -> Track
 copyright str = textCopyright str 0
 
+trackName :: StrictBS.ByteString -> Track
+trackName str = textTrackName str 0
+
 instrumentName :: StrictBS.ByteString -> Track
 instrumentName str = textInstruName str 0
-
-
