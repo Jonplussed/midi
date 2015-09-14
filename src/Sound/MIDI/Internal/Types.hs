@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveFunctor #-}
+
 module Sound.Midi.Internal.Types where
 
 import Control.Monad.Free (Free (..))
@@ -53,9 +55,10 @@ data MetaChunk
   | SetKeySig KeySignature
 
 data ChunkM next
-  = VoiceChunk Beats VoiceChunk next
-  | MetaChunk Beats MetaChunk next
-  | Rest Beats next
+  = VoiceChunk Float VoiceChunk next
+  | MetaChunk Float MetaChunk next
+  | Rest Float next
+  deriving (Functor)
 
 type TrackM = Free ChunkM
 type Midi = ReaderT PPQN (State (TrackCount, Bld.Builder))

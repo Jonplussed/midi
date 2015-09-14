@@ -26,23 +26,23 @@ import Sound.Midi.Internal.Types
 
 buildTrack :: PPQN -> Channel -> TrackM a -> Bld.Builder
 buildTrack ppqn chan track =
-    trackBegin (interp track $ Beats 0) <>
+    trackBegin (interp track 0) <>
     trackEnd
   where
     interp (Free (VoiceChunk nextBeats chunk next)) beats =
-      encode (fromBeats ppqn beats) <>
+      encode (fromBeats ppqn $ Beats beats) <>
       Bld.word8 (voiceChunkIdent chan chunk) <>
       encode chunk <>
       interp next nextBeats
     interp (Free (MetaChunk nextBeats chunk next)) beats =
-      encode (fromBeats ppqn beats) <>
+      encode (fromBeats ppqn $ Beats beats) <>
       Bld.word8 0xFF <>
       Bld.word8 (metaChunkIdent chunk) <>
       Bld.word8 (metaArgSize chunk) <>
       encode chunk <>
       interp next nextBeats
     interp (Free (Rest nextBeats next)) beats =
-      encode (fromBeats ppqn beats) <>
+      encode (fromBeats ppqn $ Beats beats) <>
       interp next nextBeats
 
 buildFile :: FileFormat -> PPQN -> Midi () -> Bld.Builder

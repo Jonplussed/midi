@@ -3,12 +3,13 @@ module Sound.Midi.Values.Velocity where
 import Sound.Midi.Internal.Ops (correlateRanges)
 import Sound.Midi.Internal.Types (Velocity (..))
 
-fastest = percent 100
-faster  = percent 80
-fast    = percent 60
-slow    = percent 40
-slower  = percent 20
-slowest = percent 1
+fastest   = velocity 100
+faster    = velocity 80
+fast      = velocity 60
+moderate  = velocity 50
+slow      = velocity 40
+slower    = velocity 20
+slowest   = velocity 1
 
-percent :: RealFrac a => a -> Velocity
-percent = Velocity . fromIntegral . correlateRanges (0,100) (0,127)
+velocity :: RealFrac a => a -> Velocity
+velocity = Velocity . fromIntegral . correlateRanges (0,100) (0,127)
