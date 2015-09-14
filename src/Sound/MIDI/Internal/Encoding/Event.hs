@@ -24,7 +24,7 @@ import Sound.Midi.Internal.Types
 -- written as "wait for [time], then perform [event]". We merge the two by
 -- kicking each action's deltaTime up to the next event
 
-buildTrack :: PPQN -> Channel -> TrackM a -> Bld.Builder
+buildTrack :: PPQN -> Channel -> Track -> Bld.Builder
 buildTrack ppqn chan track =
     trackBegin (interp track 0) <>
     trackEnd
@@ -45,7 +45,7 @@ buildTrack ppqn chan track =
       encode (fromBeats ppqn $ Beats beats) <>
       interp next nextBeats
 
-buildFile :: FileFormat -> PPQN -> Midi () -> Bld.Builder
+buildFile :: FileFormat -> PPQN -> Midi -> Bld.Builder
 buildFile format ppqn tracks =
     fileBegin format ppqn trackCount <>
     trackStr

@@ -60,8 +60,8 @@ data ChunkM next
   | Rest Float next
   deriving (Functor)
 
-type TrackM = Free ChunkM
-type Midi = ReaderT PPQN (State (TrackCount, Bld.Builder))
+type Track = Free ChunkM ()
+type Midi = ReaderT PPQN (State (TrackCount, Bld.Builder)) ()
 
 class Encodable a where
   encode :: a -> Bld.Builder
