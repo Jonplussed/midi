@@ -8,12 +8,23 @@ import Sound.Midi.Values
 
 example :: Midi
 example = do
+    track ch1  guitar
+    track ch2  piano
+    track ch3  drums
+    track ch16 info
 
-  track ch1 $ do
-    trackName "lead melody"
+guitar :: Track
+guitar = do
     instrumentName "guitar"
-    note aFlat4 2
 
-  track ch2 $ do
-    trackName "soft background melody"
+piano :: Track
+piano = do
     instrumentName "piano"
+
+drums :: Track
+drums = do
+    instrumentName "drums"
+
+info :: Track
+info = do
+    keySig $ keyOf a minor

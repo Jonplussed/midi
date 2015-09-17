@@ -1,61 +1,26 @@
 module Sound.Midi
-( -- MIDI files
-  Midi
+( Enc.Midi
 , midi
-, Track
+, Enc.Track
 , track
--- voice events
-, note
--- meta events
-, text
-, copyright
-, trackName
-, instrumentName
 ) where
 
 import Control.Monad.Reader (ask)
 import Control.Monad.State (modify)
 import Control.Monad.Trans.Class (lift)
 import Data.Monoid ((<>))
-import Sound.Midi.Internal.Encoding.Event (buildFile, buildTrack)
 
-import qualified Data.ByteString as StrictBS
 import qualified Data.ByteString.Lazy as LazyBS
-import qualified Data.ByteString.Lazy.Builder as Bld
+import qualified Data.ByteString.Lazy.Builder as Bldr
+import qualified Sound.Midi.Internal.Encoding as Enc
+import qualified Sound.Midi.Internal.Encoding.Value as Val
 
-import Sound.Midi.Events
-import Sound.Midi.Internal.Types
-import Sound.Midi.Values
+midi :: Val.FileFormat -> Val.PPQN -> Enc.Midi -> LazyBS.ByteString
+midi format ppqn tracks = Bldr.toLazyByteString $ Enc.buildFile format ppqn tracks
 
--- MIDI files
-
-midi :: FileFormat -> PPQN -> Midi -> LazyBS.ByteString
-midi format ppqn tracks = Bld.toLazyByteString $ buildFile format ppqn tracks
-
-track :: Channel -> Track -> Midi
+track :: Val.Channel -> Enc.Track -> Enc.Midi
 track channel events = do
     ppqn <- ask
-    let nextTrack = buildTrack ppqn channel events
-    lift . modify $ \(TrackCount count, tracks) ->
-      (TrackCount (succ count), tracks <> nextTrack)
-
--- voice-events
-
-note :: Note -> Float -> Track
-note n beats = do
-    noteOn n moderate beats
-    noteOff n moderate 0
-
--- meta-events
-
-text :: StrictBS.ByteString -> Track
-text str = textArbitrary str 0
-
-copyright :: StrictBS.ByteString -> Track
-copyright str = textCopyright str 0
-
-trackName :: StrictBS.ByteString -> Track
-trackName str = textTrackName str 0
-
-instrumentName :: StrictBS.ByteString -> Track
-instrumentName str = textInstruName str 0
+    let nextTrack = Enc.buildTrack ppqn channel events
+    lift . modify $ \(Val.TrackCount count, tracks) ->
+      (Val.TrackCount (succ count), tracks <> nextTrack)
