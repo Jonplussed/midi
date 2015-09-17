@@ -22,7 +22,6 @@ import Sound.Midi.Internal.Encoding.Value
 data ChunkM next
   = VoiceChunk Float VoiceChunk next
   | MetaChunk Float MetaChunk next
-  | Rest Float next
   deriving (Show, Functor)
 
 type MidiM = ReaderT PPQN (State (TrackCount, Bld.Builder))
@@ -37,22 +36,19 @@ type Track = TrackM ()
 
 buildTrack :: PPQN -> Channel -> Track -> Bld.Builder
 buildTrack ppqn chan track =
-    trackBegin (interp track 0) <>
+    trackBegin (interp track) <>
     trackEnd
   where
-    interp :: Track -> Float -> Bld.Builder
-    interp (Free (VoiceChunk nextBeats chunk next)) beats =
+    interp :: Track -> Bld.Builder
+    interp (Free (VoiceChunk beats chunk next)) =
       encode (fromBeats ppqn $ Beats beats) <>
       encodeVoiceChunk chan chunk <>
-      interp next nextBeats
-    interp (Free (MetaChunk nextBeats chunk next)) beats =
+      interp next
+    interp (Free (MetaChunk beats chunk next)) =
       encode (fromBeats ppqn $ Beats beats) <>
       encodeMetaChunk chunk <>
-      interp next nextBeats
-    interp (Free (Rest nextBeats next)) beats =
-      encode (fromBeats ppqn $ Beats beats) <>
-      interp next nextBeats
-    interp (Pure _) _ = mempty
+      interp next
+    interp (Pure _) = mempty
 
 buildFile :: FileFormat -> PPQN -> Midi -> Bld.Builder
 buildFile format ppqn tracks =
