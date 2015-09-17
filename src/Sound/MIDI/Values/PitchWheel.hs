@@ -9,9 +9,8 @@ module Sound.Midi.Values.PitchWheel
 , pitchWheel
 ) where
 
-import Data.Word (Word16)
 import Sound.Midi.Internal.Ops (correlateRanges)
-import Sound.Midi.Internal.Types (PitchWheel (..))
+import Sound.Midi.Internal.Encoding.Value (PitchWheel (..))
 
 highest   = pitchWheel 100
 higher    = pitchWheel 66.6

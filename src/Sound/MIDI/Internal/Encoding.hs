@@ -1,13 +1,16 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveFunctor, OverloadedStrings #-}
 
 module Sound.Midi.Internal.Encoding
-( buildTrack
+( ChunkM (..)
+, Midi
+, Track
+, buildTrack
 , buildFile
 ) where
 
 import Control.Monad.Free (Free (..))
-import Control.Monad.Reader (runReaderT)
-import Control.Monad.State (runState)
+import Control.Monad.Reader (ReaderT, runReaderT)
+import Control.Monad.State (State, runState)
 import Data.Monoid ((<>))
 
 import qualified Data.ByteString.Lazy as LazyBS
@@ -15,7 +18,18 @@ import qualified Data.ByteString.Lazy.Builder as Bld
 
 import Sound.Midi.Internal.Encoding.Event
 import Sound.Midi.Internal.Encoding.Value
-import Sound.Midi.Internal.Types
+
+data ChunkM next
+  = VoiceChunk Float VoiceChunk next
+  | MetaChunk Float MetaChunk next
+  | Rest Float next
+  deriving (Show, Functor)
+
+type MidiM = ReaderT PPQN (State (TrackCount, Bld.Builder))
+type Midi = MidiM ()
+
+type TrackM = Free ChunkM
+type Track = TrackM ()
 
 -- NOTE: musicians write music as "[event] for [time]", whereas MIDI is
 -- written as "wait for [time], then perform [event]". We merge the two by

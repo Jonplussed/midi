@@ -1,6 +1,6 @@
 module Sound.Midi.Values.Channel where
 
-import Sound.Midi.Internal.Types (Channel (..))
+import Sound.Midi.Internal.Encoding.Value (Channel (..))
 
 ch1  = Channel 0
 ch2  = Channel 1

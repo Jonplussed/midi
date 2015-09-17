@@ -2,8 +2,10 @@ module Sound.Midi.Events where
 
 import Control.Monad.Free (liftF)
 import Data.ByteString (ByteString)
+import Sound.Midi.Internal.Encoding (ChunkM (..), Track)
+import Sound.Midi.Internal.Encoding.Event (MetaChunk (..), VoiceChunk (..))
 
-import Sound.Midi.Internal.Types
+import Sound.Midi.Values
 
 noteOff :: Note -> Velocity -> Float -> Track
 noteOff note vel beats = liftF $ VoiceChunk beats (NoteOff note vel) ()
@@ -21,7 +23,7 @@ patchChange :: Patch -> Float -> Track
 patchChange patch beats = liftF $ VoiceChunk beats (PatchChange patch) ()
 
 channelPressure :: Pressure -> Float -> Track
-channelPressure pressure beats = liftF $ VoiceChunk beats (ChannelPressure pressure) ()
+channelPressure pres beats = liftF $ VoiceChunk beats (ChannelPressure pres) ()
 
 pitchWheelChange :: PitchWheel -> Float -> Track
 pitchWheelChange pitch beats = liftF $ VoiceChunk beats (PitchWheelChange pitch) ()

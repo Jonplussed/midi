@@ -1,7 +1,7 @@
 module Sound.Midi.Values.Velocity where
 
 import Sound.Midi.Internal.Ops (correlateRanges)
-import Sound.Midi.Internal.Types (Velocity (..))
+import Sound.Midi.Internal.Encoding.Value (Velocity (..))
 
 fastest   = velocity 100
 faster    = velocity 80

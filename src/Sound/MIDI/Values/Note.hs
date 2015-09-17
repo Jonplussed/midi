@@ -1,6 +1,6 @@
 module Sound.Midi.Values.Note where
 
-import Sound.Midi.Internal.Types (Note (..))
+import Sound.Midi.Internal.Encoding.Value (Note (..))
 
 c0       = Note 0
 cSharp0  = Note 1

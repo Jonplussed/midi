@@ -1,7 +1,6 @@
 module Sound.Midi.Values.KeySignature where
 
-import Data.Bits ((.|.), shiftL)
-import Sound.Midi.Internal.Types
+import Sound.Midi.Internal.Encoding.Value
   (KeyChord (..), KeyNote (..), KeySignature (..))
 
 major   = KeyChord 0

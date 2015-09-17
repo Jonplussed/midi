@@ -1,5 +1,7 @@
 module Sound.Midi.Internal.Encoding.Event
-( encodeMetaChunk
+( MetaChunk (..)
+, VoiceChunk (..)
+, encodeMetaChunk
 , encodeVoiceChunk
 ) where
 
@@ -11,7 +13,31 @@ import qualified Data.ByteString as StrictBS
 import qualified Data.ByteString.Lazy.Builder as Bld
 
 import Sound.Midi.Internal.Encoding.Value
-import Sound.Midi.Internal.Types
+
+data VoiceChunk
+  = NoteOff Note Velocity
+  | NoteOn Note Velocity
+  | AfterTouch Note Pressure
+  | ControlChange ControllerIdent ControllerValue
+  | PatchChange Patch
+  | ChannelPressure Pressure
+  | PitchWheelChange PitchWheel
+  deriving (Show)
+
+-- still needs Tempo and TimeSig
+data MetaChunk
+  = SequenceNumber Sequence
+  | TextArbitrary StrictBS.ByteString
+  | TextCopyright StrictBS.ByteString
+  | TextTrackName StrictBS.ByteString
+  | TextInstruName StrictBS.ByteString
+  | TextLyric StrictBS.ByteString
+  | TextMarker StrictBS.ByteString
+  | TextCuePoint StrictBS.ByteString
+  | SetTempo Tempo
+  | SetTimeSig -- gotta figure this out
+  | SetKeySig KeySignature
+  deriving (Show)
 
 encodeMetaChunk :: MetaChunk -> Bld.Builder
 encodeMetaChunk chunk =
@@ -59,7 +85,7 @@ metaChunkIdent chunk = case chunk of
 
 metaChunkValue :: MetaChunk -> Bld.Builder
 metaChunkValue chunk = case chunk of
-    SequenceNumber seq  -> encode seq
+    SequenceNumber num  -> encode num
     TextArbitrary text  -> Bld.byteString text
     TextCopyright text  -> Bld.byteString text
     TextTrackName text  -> Bld.byteString text
@@ -67,7 +93,7 @@ metaChunkValue chunk = case chunk of
     TextLyric text      -> Bld.byteString text
     TextMarker text     -> Bld.byteString text
     TextCuePoint text   -> Bld.byteString text
-    SetTempo tempo      -> undefined
+    SetTempo _          -> undefined
     SetTimeSig          -> undefined
     SetKeySig sig       -> encode sig
 

@@ -1,7 +1,7 @@
 module Sound.Midi.Values.Pressure where
 
 import Sound.Midi.Internal.Ops (correlateRanges)
-import Sound.Midi.Internal.Types (Pressure (..))
+import Sound.Midi.Internal.Encoding.Value (Pressure (..))
 
 hardest = pressure 100
 harder  = pressure 80
