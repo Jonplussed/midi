@@ -2,60 +2,67 @@ module Sound.Midi.Events where
 
 import Control.Monad.Free (liftF)
 import Data.ByteString (ByteString)
-import Sound.Midi.Internal.Encoding (ChunkM (..), Track)
+import Sound.Midi.Internal.Encoding (ChunkM (..), Track, delay)
 import Sound.Midi.Internal.Encoding.Event (MetaChunk (..), VoiceChunk (..))
 
 import Sound.Midi.Values
 
-noteOff :: Note -> Velocity -> Float -> Track
-noteOff note vel beats = liftF $ VoiceChunk beats (NoteOff note vel) ()
+-- modifiers
 
-noteOn :: Note -> Velocity -> Float -> Track
-noteOn note vel beats = liftF $ VoiceChunk beats (NoteOn note vel) ()
+rest :: Float -> Track -> Track
+rest = delay
 
-afterTouch :: Note -> Pressure -> Float -> Track
-afterTouch note pres beats = liftF $ VoiceChunk beats (AfterTouch note pres) ()
+-- voice events
 
-controlChange :: ControllerIdent -> ControllerValue -> Float -> Track
-controlChange ident value beats = liftF $ VoiceChunk beats (ControlChange ident value) ()
+noteOff :: Note -> Velocity -> Track
+noteOff note vel = liftF $ VoiceChunk 0 (NoteOff note vel) ()
 
-patchChange :: Patch -> Float -> Track
-patchChange patch beats = liftF $ VoiceChunk beats (PatchChange patch) ()
+noteOn :: Note -> Velocity -> Track
+noteOn note vel = liftF $ VoiceChunk 0 (NoteOn note vel) ()
 
-channelPressure :: Pressure -> Float -> Track
-channelPressure pres beats = liftF $ VoiceChunk beats (ChannelPressure pres) ()
+afterTouch :: Note -> Pressure -> Track
+afterTouch note pres = liftF $ VoiceChunk 0 (AfterTouch note pres) ()
 
-pitchWheelChange :: PitchWheel -> Float -> Track
-pitchWheelChange pitch beats = liftF $ VoiceChunk beats (PitchWheelChange pitch) ()
+controller :: ControllerIdent -> ControllerValue -> Track
+controller ident value = liftF $ VoiceChunk 0 (ControlChange ident value) ()
 
-sequenceNumber :: Sequence -> Float -> Track
-sequenceNumber num beats = liftF $ MetaChunk beats (SequenceNumber num) ()
+patch :: Patch -> Track
+patch p = liftF $ VoiceChunk 0 (PatchChange p) ()
 
-textArbitrary :: ByteString -> Float -> Track
-textArbitrary text beats = liftF $ MetaChunk beats (TextArbitrary text) ()
+channelPressure :: Pressure -> Track
+channelPressure pres = liftF $ VoiceChunk 0 (ChannelPressure pres) ()
 
-textCopyright :: ByteString -> Float -> Track
-textCopyright text beats = liftF $ MetaChunk beats (TextCopyright text) ()
+pitchWheel :: PitchWheel -> Track
+pitchWheel pitch = liftF $ VoiceChunk 0 (PitchWheelChange pitch) ()
 
-textTrackName :: ByteString -> Float -> Track
-textTrackName text beats = liftF $ MetaChunk beats (TextTrackName text) ()
+-- meta events
 
-textInstruName :: ByteString -> Float -> Track
-textInstruName text beats = liftF $ MetaChunk beats (TextInstruName text) ()
+sequence :: Sequence -> Track
+sequence num = liftF $ MetaChunk 0 (SequenceNumber num) ()
 
-textLyric :: ByteString -> Float -> Track
-textLyric text beats = liftF $ MetaChunk beats (TextLyric text) ()
+text :: ByteString -> Track
+text str = liftF $ MetaChunk 0 (TextArbitrary str) ()
 
-textMarker :: ByteString -> Float -> Track
-textMarker text beats = liftF $ MetaChunk beats (TextMarker text) ()
+copyright :: ByteString -> Track
+copyright str = liftF $ MetaChunk 0 (TextCopyright str) ()
 
-textCuePoint :: ByteString -> Float -> Track
-textCuePoint text beats = liftF $ MetaChunk beats (TextCuePoint text) ()
+trackName :: ByteString -> Track
+trackName str = liftF $ MetaChunk 0 (TextTrackName str) ()
 
-setTempo :: Tempo -> Float -> Track
-setTempo tempo beats = liftF $ MetaChunk beats (SetTempo tempo) ()
+instrumentName :: ByteString -> Track
+instrumentName str = liftF $ MetaChunk 0 (TextInstruName str) ()
 
--- SetTimeSig -- gotta figure this out
+lyric :: ByteString -> Track
+lyric str = liftF $ MetaChunk 0 (TextLyric str) ()
 
-setKeySig :: KeySignature -> Float -> Track
-setKeySig keySig beats = liftF $ MetaChunk beats (SetKeySig keySig) ()
+marker :: ByteString -> Track
+marker str = liftF $ MetaChunk 0 (TextMarker str) ()
+
+cuePoint :: ByteString -> Track
+cuePoint str = liftF $ MetaChunk 0 (TextCuePoint str) ()
+
+tempo :: Tempo -> Track
+tempo t = liftF $ MetaChunk 0 (SetTempo t) ()
+
+keySig :: KeySignature -> Track
+keySig sig = liftF $ MetaChunk 0 (SetKeySig sig) ()

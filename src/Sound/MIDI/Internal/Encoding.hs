@@ -6,6 +6,7 @@ module Sound.Midi.Internal.Encoding
 , Track
 , buildTrack
 , buildFile
+, delay
 ) where
 
 import Control.Monad.Free (Free (..))
@@ -56,6 +57,12 @@ buildFile format ppqn tracks =
     trackStr
   where
     (_, (trackCount, trackStr)) = runState (runReaderT tracks ppqn) initState
+
+delay :: Float -> Track -> Track
+delay beats (Free chunkM) = Free $ case chunkM of
+    VoiceChunk zero chunk next -> VoiceChunk (zero + beats) chunk next
+    MetaChunk zero chunk next -> MetaChunk (zero + beats) chunk next
+delay _ track = track
 
 -- private functions
 
