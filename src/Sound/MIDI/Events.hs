@@ -64,5 +64,5 @@ cuePoint str = liftF $ MetaChunk 0 (TextCuePoint str) ()
 tempo :: Tempo -> Track
 tempo t = liftF $ MetaChunk 0 (SetTempo t) ()
 
-keySig :: KeySignature -> Track
-keySig sig = liftF $ MetaChunk 0 (SetKeySig sig) ()
+keySig :: KeyNote -> KeyChord -> Track
+keySig note chord = liftF $ MetaChunk 0 (SetKeySig $ keyOf note chord) ()

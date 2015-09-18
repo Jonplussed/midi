@@ -6,25 +6,18 @@ import Sound.Midi
 import Sound.Midi.Events
 import Sound.Midi.Values
 
-example :: Midi
-example = do
-    track ch1  guitar
-    track ch2  piano
-    track ch3  drums
-    track ch16 info
+import qualified Data.ByteString.Lazy as LazyBS
 
-guitar :: Track
-guitar = do
-    instrumentName "guitar"
+main :: IO ()
+main = LazyBS.putStr $ midi syncMultiTrack (ppqn 480) mySong
 
-piano :: Track
-piano = do
-    instrumentName "piano"
+mySong :: Midi
+mySong = do
+    track ch16 $ do
+        keySig a minor
 
-drums :: Track
-drums = do
-    instrumentName "drums"
+    track ch1 $ do
+        instrumentName "guitar"
 
-info :: Track
-info = do
-    keySig $ keyOf a minor
+    track ch2 $ do
+        instrumentName "drums"

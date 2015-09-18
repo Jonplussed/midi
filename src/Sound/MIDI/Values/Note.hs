@@ -2,6 +2,24 @@ module Sound.Midi.Values.Note where
 
 import Sound.Midi.Internal.Encoding.Value (Note (..))
 
+c0, cSharp0, dFlat0, d0, dSharp0, eFlat0, e0, f0, fSharp0, gFlat0, g0, gSharp0,
+  aFlat0, a0, aSharp0, bFlat0, b0, c1, cSharp1, dFlat1, d1, dSharp1, eFlat1,
+  e1, f1, fSharp1, gFlat1, g1, gSharp1, aFlat1, a1, aSharp1, bFlat1, b1, c2,
+  cSharp2, dFlat2, d2, dSharp2, eFlat2, e2, f2, fSharp2, gFlat2, g2, gSharp2,
+  aFlat2, a2, aSharp2, bFlat2, b2, c3, cSharp3, dFlat3, d3, dSharp3, eFlat3,
+  e3, f3, fSharp3, gFlat3, g3, gSharp3, aFlat3, a3, aSharp3, bFlat3, b3, c4,
+  cSharp4, dFlat4, d4, dSharp4, eFlat4, e4, f4, fSharp4, gFlat4, g4, gSharp4,
+  aFlat4, a4, aSharp4, bFlat4, b4, c5, cSharp5, dFlat5, d5, dSharp5, eFlat5,
+  e5, f5, fSharp5, gFlat5, g5, gSharp5, aFlat5, a5, aSharp5, bFlat5, b5, c6,
+  cSharp6, dFlat6, d6, dSharp6, eFlat6, e6, f6, fSharp6, gFlat6, g6, gSharp6,
+  aFlat6, a6, aSharp6, bFlat6, b6, c7, cSharp7, dFlat7, d7, dSharp7, eFlat7,
+  e7, f7, fSharp7, gFlat7, g7, gSharp7, aFlat7, a7, aSharp7, bFlat7, b7, c8,
+  cSharp8, dFlat8, d8, dSharp8, eFlat8, e8, f8, fSharp8, gFlat8, g8, gSharp8,
+  aFlat8, a8, aSharp8, bFlat8, b8, c9, cSharp9, dFlat9, d9, dSharp9, eFlat9,
+  e9, f9, fSharp9, gFlat9, g9, gSharp9, aFlat9, a9, aSharp9, bFlat9, b9, c10,
+  cSharp10, dFlat10, d10, dSharp10, eFlat10, e10, f10, fSharp10, gFlat10, g10
+  :: Note
+
 c0       = Note 0
 cSharp0  = Note 1
 dFlat0   = Note 1

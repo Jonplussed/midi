@@ -3,8 +3,13 @@ module Sound.Midi.Values.KeySignature where
 import Sound.Midi.Internal.Encoding.Value
   (KeyChord (..), KeyNote (..), KeySignature (..))
 
+major, minor :: KeyChord
+
 major   = KeyChord 0
 minor   = KeyChord 1
+
+c, cSharp, dFlat, d, eFlat, e, f, fSharp, gFlat, g, aFlat, a, bFlat, b, cFlat
+  :: KeyNote
 
 c       = KeyNote 0
 cSharp  = KeyNote 7

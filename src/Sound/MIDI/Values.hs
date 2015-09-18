@@ -23,6 +23,9 @@ module Sound.Midi.Values
 , PitchWheel
 , module Sound.Midi.Values.PitchWheel
 
+, PPQN
+, module Sound.Midi.Values.PPQN
+
 , Pressure
 , module Sound.Midi.Values.Pressure
 
@@ -42,5 +45,6 @@ import Sound.Midi.Values.FileFormat
 import Sound.Midi.Values.KeySignature
 import Sound.Midi.Values.Note
 import Sound.Midi.Values.PitchWheel
+import Sound.Midi.Values.PPQN
 import Sound.Midi.Values.Pressure
 import Sound.Midi.Values.Velocity

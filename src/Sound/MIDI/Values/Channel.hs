@@ -2,6 +2,9 @@ module Sound.Midi.Values.Channel where
 
 import Sound.Midi.Internal.Encoding.Value (Channel (..))
 
+ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9, ch10, ch11, ch12, ch13, ch14,
+  ch15, ch16 :: Channel
+
 ch1  = Channel 0
 ch2  = Channel 1
 ch3  = Channel 2

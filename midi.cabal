@@ -10,7 +10,7 @@ extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
-  ghc-options:        -W -Wall
+  ghc-options:        -W -Wall -Werror
   build-depends:      base == 4.*,
                       binary == 0.7.*,
                       bytestring == 0.10.*,
