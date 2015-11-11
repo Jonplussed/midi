@@ -9,4 +9,4 @@ singleTrack, syncMultiTrack, asyncMultiTrack :: FileFormat
 
 singleTrack     = FileFormat 0
 syncMultiTrack  = FileFormat 1
-asyncMultiTrack = FileFormat 2
+asyncMultiTrack = FileFormat 2 -- currently unsupported
